@@ -1,0 +1,21 @@
+services:
+  audio-uploader:
+    build: .
+    container_name: aws-audio-uploader
+    env_file:
+      - ../.env
+    volumes:
+      # ソースフォルダをマウント（Windows側でコピーしたフォルダ）
+      - "${SOURCE_COPY_FOLDER:-../usb_copy}:/mnt/source:ro"
+      # 設定ファイルをマウント
+      - ./config.json:/app/config.json:ro
+      # 一時フォルダ用（書き込み可能）
+      - "${TEMP_FOLDER:-../temp_uploads}:/app/temp_uploads"
+    environment:
+      # アプリケーション固有の環境変数
+      - SOURCE_FOLDER=/mnt/source
+      - TEMP_FOLDER_PATH=/app/temp_uploads
+      # AWS設定（AWS_BUCKET_NAME, AWS_S3_PREFIX, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY など）
+      # は .env ファイルから env_file で自動的に読み込まれます
+    command: ["-c", "/app/config.json"]
+    restart: "no"
