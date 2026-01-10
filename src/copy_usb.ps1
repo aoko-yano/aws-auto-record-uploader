@@ -37,7 +37,7 @@ function Read-EnvFile {
 }
 
 # 環境変数の検証
-function Validate-EnvVars {
+function Test-EnvVars {
     param(
         [hashtable]$envVars,
         [string[]]$requiredVars
@@ -82,7 +82,7 @@ $envVars = Read-EnvFile
 
 # 必須環境変数の検証
 $requiredVars = @("USB_SOURCE_DRIVE", "SOURCE_COPY_FOLDER")
-Validate-EnvVars -envVars $envVars -requiredVars $requiredVars
+Test-EnvVars -envVars $envVars -requiredVars $requiredVars
 
 # 環境変数から値を取得
 $SourceDrive = $envVars["USB_SOURCE_DRIVE"]
