@@ -112,3 +112,7 @@ PowerShellで以下を実行してください：
 → `.env`ファイルに`AWS_ACCESS_KEY_ID`と`AWS_SECRET_ACCESS_KEY`が設定されているか確認してください
 → `.env`ファイルがプロジェクトルートに存在するか確認してください
 → 環境変数が正しく読み込まれているか確認してください
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
