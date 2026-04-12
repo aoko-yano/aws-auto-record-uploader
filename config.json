@@ -7,7 +7,13 @@
     "region": "ap-northeast-1"
   },
   "options": {
-    "delete_after_upload": true,
     "create_date_folders": true
+  },
+  "transcription": {
+    "enabled": true,
+    "model": "large-v3",
+    "language": "ja",
+    "device": "cpu",
+    "compute_type": "int8"
   }
 }

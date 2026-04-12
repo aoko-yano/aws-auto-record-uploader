@@ -13,9 +13,8 @@ Write-Host ("=" * 60) -ForegroundColor Cyan
 
 # 0. Dockerコンテナを停止（既存のコンテナがフォルダを使用している可能性があるため）
 Write-Host "`n[0/4] Dockerコンテナを停止中..." -ForegroundColor Yellow
-Push-Location src
 try {
-    docker-compose down 2>&1 | Out-Null
+    docker compose down 2>&1 | Out-Null
 } catch {
     # エラーを無視（コンテナが存在しない場合など）
 }
@@ -25,16 +24,13 @@ try {
 } catch {
     # エラーを無視（コンテナが存在しない場合など）
 }
-Pop-Location
 # コンテナが完全に停止するまで少し待機
 Start-Sleep -Seconds 2
 
 # 1. Dockerコンテナをビルド
 Write-Host "`n[1/4] Dockerコンテナをビルド中..." -ForegroundColor Yellow
-Push-Location src
-docker-compose build
+docker compose build
 $buildExitCode = $LASTEXITCODE
-Pop-Location
 if ($null -ne $buildExitCode -and $buildExitCode -ne 0) {
     Write-Host "エラー: Dockerコンテナのビルドに失敗しました" -ForegroundColor Red
     exit 1
@@ -42,7 +38,7 @@ if ($null -ne $buildExitCode -and $buildExitCode -ne 0) {
 
 # 2. ファイルをコピー
 Write-Host "`n[2/4] ファイルをコピー中..." -ForegroundColor Yellow
-& .\src\copy_usb.ps1
+& .\copy_usb.ps1
 $copyExitCode = $LASTEXITCODE
 if ($null -ne $copyExitCode -and $copyExitCode -ne 0) {
     Write-Host "エラー: ファイルのコピーに失敗しました" -ForegroundColor Red
@@ -51,6 +47,4 @@ if ($null -ne $copyExitCode -and $copyExitCode -ne 0) {
 
 # 3. Dockerコンテナで処理
 Write-Host "`n[3/4] Dockerコンテナで処理中..." -ForegroundColor Yellow
-Push-Location src
-docker-compose up
-Pop-Location
+docker compose up

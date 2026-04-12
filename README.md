@@ -6,6 +6,8 @@
 
 - 指定フォルダから音声ファイルを検出
 - AWS S3 Glacierストレージクラスでアップロード
+- 既にS3にある同名ファイルをスキップ
+- faster-whisper による文字起こし
 - 設定ファイルによる柔軟な設定
 
 ## 必要な環境
@@ -47,7 +49,7 @@ AWS_S3_PREFIX=your-s3-prefix
 ```
 
 2. 設定ファイルの編集:
-必要な場合、`src/config.json`を編集してアップロード対象などを変更してください。
+必要な場合、ルートの`config.json`を編集してアップロード対象などを変更してください。
 ```json
 {
   "usb": {
@@ -60,6 +62,13 @@ AWS_S3_PREFIX=your-s3-prefix
   "options": {
     "delete_after_upload": true,
     "create_date_folders": true
+  },
+  "transcription": {
+    "enabled": true,
+    "model": "large-v3",
+    "language": "ja",
+    "device": "cpu",
+    "compute_type": "int8"
   }
 }
 ```
@@ -71,6 +80,40 @@ AWS_S3_PREFIX=your-s3-prefix
 - `aws.region`: AWSリージョン
 - `options.delete_after_upload`: アップロード後にソース上のファイルを削除するか（現在は使用されていません）
 - `options.create_date_folders`: 日付フォルダを作成するか（例: recordings/20240101/）
+- `transcription.enabled`: 文字起こしを行うか
+- `transcription.model`: 使用する Whisper モデル名
+- `transcription.language`: 文字起こし対象の言語
+- `transcription.device`: 推論デバイス（例: `cpu`）
+- `transcription.compute_type`: faster-whisper の計算精度
+
+## 開発環境
+
+依存管理は `pyproject.toml` に集約されています。ローカルでテストや CLI を使う場合は、プロジェクトルートで以下を実行してください。
+
+```powershell
+python -m pip install -e ".[dev]"
+```
+
+インストール後は、以下のどちらでも起動できます。
+
+```powershell
+aws-auto-record-uploader --config config.json
+python -m aws_auto_record_uploader --config config.json
+```
+
+## 内部構成
+
+実装コードは `src/aws_auto_record_uploader/` 配下の package にまとめています。Docker 関連ファイルと設定ファイルはルートに置いています。
+
+- `src/aws_auto_record_uploader/cli.py`: CLI エントリーポイント
+- `src/aws_auto_record_uploader/app.py`: パイプライン全体の実行順序を管理
+- `src/aws_auto_record_uploader/config.py`: `config.json` の読込
+- `src/aws_auto_record_uploader/audio_files.py`: 音声ファイル探索と重複除外
+- `src/aws_auto_record_uploader/staging.py`: 一時フォルダへのコピーとクリーンアップ
+- `src/aws_auto_record_uploader/transcription.py`: Whisper モデル読込と文字起こし
+- `src/aws_auto_record_uploader/s3_upload.py`: S3 クライアント生成、既存ファイル確認、アップロード
+
+テストは `tests/` 配下に置き、package 単位で import しています。
 
 ## 使用方法
 

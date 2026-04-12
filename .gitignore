@@ -8,6 +8,7 @@ env/
 venv/
 ENV/
 .venv
+*.egg-info/
 
 # 一時ファイル
 temp_uploads/
@@ -27,3 +28,9 @@ usb_copy/
 # OS
 .DS_Store
 Thumbs.db
+
+# doc
+docs/**
+
+# Whisperモデルキャッシュ（大容量バイナリ）
+model_cache/

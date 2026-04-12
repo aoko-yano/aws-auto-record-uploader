@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aws-auto-record-uploader"
+version = "0.1.0"
+description = "Upload audio files to AWS S3 Glacier with optional transcription."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.28.0",
+    "faster-whisper>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+aws-auto-record-uploader = "aws_auto_record_uploader.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
