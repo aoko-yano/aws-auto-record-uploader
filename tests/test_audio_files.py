@@ -1,6 +1,10 @@
 from pathlib import Path
 
-from aws_auto_record_uploader.audio_files import filter_new_files, find_audio_files
+from aws_auto_record_uploader.audio_files import (
+    filter_new_files,
+    filter_new_files_by_filename,
+    find_audio_files,
+)
 
 
 def test_find_audio_files_returns_empty_for_missing_folder(tmp_path):
@@ -39,5 +43,21 @@ def test_filter_new_files_skips_existing_relative_paths_case_insensitively(tmp_p
     old_file.parent.mkdir()
 
     result = filter_new_files([new_file, old_file], {"b/rec.mp3"}, source_dir)
+
+    assert result == [new_file]
+
+
+def test_filter_new_files_by_filename_skips_existing_names_anywhere(tmp_path):
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    new_file = source_dir / "a" / "new.mp3"
+    old_file = source_dir / "b" / "REC.MP3"
+    new_file.parent.mkdir()
+    old_file.parent.mkdir()
+
+    result = filter_new_files_by_filename(
+        [new_file, old_file],
+        {"somewhere/else/rec.mp3"},
+    )
 
     assert result == [new_file]

@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 
@@ -46,6 +46,26 @@ def filter_new_files(
 
         if relative_key in existing_filenames:
             print(f"  スキップ（既存）: {audio_file.name}")
+            skipped += 1
+        else:
+            new_files.append(audio_file)
+
+    print(f"✓ 新規: {len(new_files)}個 / スキップ: {skipped}個")
+    return new_files
+
+
+def filter_new_files_by_filename(
+    audio_files: list[Path],
+    existing_keys: set[str],
+) -> list[Path]:
+    """S3配下のどこかに同名ファイルがある音声を除外する"""
+    existing_names = {PurePosixPath(key).name.lower() for key in existing_keys}
+    new_files = []
+    skipped = 0
+
+    for audio_file in audio_files:
+        if audio_file.name.lower() in existing_names:
+            print(f"  スキップ（既存ファイル名）: {audio_file.name}")
             skipped += 1
         else:
             new_files.append(audio_file)

@@ -50,9 +50,9 @@ def test_upload_to_s3_returns_empty_when_bucket_missing(tmp_path):
 
 def test_upload_to_s3_uploads_audio_and_txt(tmp_path):
     client = MagicMock()
-    audio_file = tmp_path / "rec.mp3"
+    audio_file = tmp_path / "R20250806-153138.mp3"
     audio_file.write_bytes(b"x")
-    txt_file = tmp_path / "rec.txt"
+    txt_file = tmp_path / "R20250806-153138.txt"
     txt_file.write_text("[0.0s] hello\n", encoding="utf-8")
     now = datetime(2026, 4, 11, 0, 0, 0)
 
@@ -67,11 +67,14 @@ def test_upload_to_s3_uploads_audio_and_txt(tmp_path):
         now=now,
     )
 
-    assert result == ["prefix/20260411/rec.mp3", "prefix/20260411/rec.txt"]
+    assert result == [
+        "prefix/20250806/R20250806-153138.mp3",
+        "prefix/20250806/R20250806-153138.txt",
+    ]
     first_call = client.upload_file.call_args_list[0]
     first_extra = first_call.kwargs["ExtraArgs"]
     assert first_extra["StorageClass"] == "GLACIER"
-    assert first_extra["Metadata"]["original_path"] == "rec.mp3"
+    assert first_extra["Metadata"]["original_path"] == "R20250806-153138.mp3"
 
     second_call = client.upload_file.call_args_list[1]
     second_extra = second_call.kwargs["ExtraArgs"]
@@ -82,7 +85,7 @@ def test_upload_to_s3_preserves_nested_relative_path_and_normalizes_prefix(tmp_p
     client = MagicMock()
     nested_dir = tmp_path / "nested"
     nested_dir.mkdir()
-    audio_file = nested_dir / "rec.mp3"
+    audio_file = nested_dir / "R20250806-153138.mp3"
     audio_file.write_bytes(b"x")
 
     result = upload_to_s3(
@@ -96,7 +99,7 @@ def test_upload_to_s3_preserves_nested_relative_path_and_normalizes_prefix(tmp_p
         now=datetime(2026, 4, 11, 0, 0, 0),
     )
 
-    assert result == ["prefix/20260411/nested/rec.mp3"]
+    assert result == ["prefix/20250806/nested/R20250806-153138.mp3"]
 
 
 def test_upload_to_s3_uses_flat_key_when_date_folder_disabled(tmp_path):
@@ -116,3 +119,22 @@ def test_upload_to_s3_uses_flat_key_when_date_folder_disabled(tmp_path):
     )
 
     assert result == ["prefix/rec.mp3"]
+
+
+def test_upload_to_s3_falls_back_to_current_date_when_filename_has_no_embedded_date(tmp_path):
+    client = MagicMock()
+    audio_file = tmp_path / "rec.mp3"
+    audio_file.write_bytes(b"x")
+
+    result = upload_to_s3(
+        client=client,
+        local_files=[audio_file],
+        bucket_name="bucket",
+        s3_prefix="prefix/",
+        storage_class="GLACIER",
+        create_date_folders=True,
+        temp_folder=tmp_path,
+        now=datetime(2026, 4, 11, 0, 0, 0),
+    )
+
+    assert result == ["prefix/20260411/rec.mp3"]

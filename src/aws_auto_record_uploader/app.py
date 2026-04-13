@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from .audio_files import filter_new_files, find_audio_files
+from .audio_files import filter_new_files_by_filename, find_audio_files
 from .config import load_config
 from .s3_upload import create_s3_client, list_existing_s3_filenames, upload_to_s3
 from .staging import cleanup_temp, prepare_files
@@ -40,7 +40,7 @@ def run_pipeline(config_path: str = "config.json") -> None:
         s3_prefix,
         config["options"]["create_date_folders"],
     )
-    new_files = filter_new_files(audio_files, existing, source_path)
+    new_files = filter_new_files_by_filename(audio_files, existing)
     if not new_files:
         print("\n新規ファイルはありません。処理を終了します。")
         return

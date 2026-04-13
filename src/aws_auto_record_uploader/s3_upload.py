@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path, PurePosixPath
+import re
 
 try:
     import boto3
@@ -34,6 +35,13 @@ def _normalize_existing_key(key: str, s3_prefix: str, create_date_folders: bool)
     if create_date_folders and parts and len(parts[0]) == 8 and parts[0].isdigit():
         parts = parts[1:]
     return PurePosixPath(*parts).as_posix().lower() if parts else ""
+
+
+def _extract_date_folder(filename: str, fallback_date: datetime) -> str:
+    match = re.match(r"^R(\d{8})-", filename, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    return fallback_date.strftime("%Y%m%d")
 
 
 def list_existing_s3_filenames(
@@ -95,7 +103,8 @@ def upload_to_s3(
             relative_key = relative_path.as_posix()
 
             if create_date_folders:
-                s3_key = f"{normalized_prefix}{current_time.strftime('%Y%m%d')}/{relative_key}"
+                date_folder = _extract_date_folder(local_file.name, current_time)
+                s3_key = f"{normalized_prefix}{date_folder}/{relative_key}"
             else:
                 s3_key = f"{normalized_prefix}{relative_key}"
 

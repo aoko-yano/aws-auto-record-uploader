@@ -70,7 +70,7 @@ def test_run_pipeline_skips_transcription_when_disabled(tmp_path, monkeypatch):
         list_existing_mock,
     )
     monkeypatch.setattr(
-        "aws_auto_record_uploader.app.filter_new_files",
+        "aws_auto_record_uploader.app.filter_new_files_by_filename",
         filter_new_files_mock,
     )
     monkeypatch.setattr(
@@ -135,7 +135,7 @@ def test_run_pipeline_transcribes_each_local_file_when_enabled(tmp_path, monkeyp
         MagicMock(return_value=set()),
     )
     monkeypatch.setattr(
-        "aws_auto_record_uploader.app.filter_new_files",
+        "aws_auto_record_uploader.app.filter_new_files_by_filename",
         MagicMock(return_value=[source_dir / "rec1.mp3", source_dir / "rec2.mp3"]),
     )
     monkeypatch.setattr(
@@ -163,3 +163,66 @@ def test_run_pipeline_transcribes_each_local_file_when_enabled(tmp_path, monkeyp
     assert len(app_calls) == 2
     assert app_calls[0].args == (model, local_file_one, "ja")
     assert app_calls[1].args == (model, local_file_two, "ja")
+
+
+def test_run_pipeline_skips_transcription_and_upload_for_s3_filename_match(tmp_path, monkeypatch):
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    audio_file = source_dir / "R20250806-153138.mp3"
+    audio_file.write_bytes(b"x")
+
+    prepare_files_mock = MagicMock()
+    load_whisper_model_mock = MagicMock()
+    transcribe_file_mock = MagicMock()
+    upload_to_s3_mock = MagicMock()
+    cleanup_temp_mock = MagicMock()
+
+    monkeypatch.setenv("SOURCE_FOLDER", str(source_dir))
+    monkeypatch.setenv("TEMP_FOLDER_PATH", str(tmp_path / "temp"))
+    monkeypatch.setenv("AWS_BUCKET_NAME", "bucket")
+    monkeypatch.setenv("AWS_S3_PREFIX", "prefix/")
+
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.load_config",
+        MagicMock(return_value=MINIMAL_CONFIG),
+    )
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.create_s3_client",
+        MagicMock(return_value=MagicMock()),
+    )
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.find_audio_files",
+        MagicMock(return_value=[audio_file]),
+    )
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.list_existing_s3_filenames",
+        MagicMock(return_value={"other/folder/r20250806-153138.mp3"}),
+    )
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.prepare_files",
+        prepare_files_mock,
+    )
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.load_whisper_model",
+        load_whisper_model_mock,
+    )
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.transcribe_file",
+        transcribe_file_mock,
+    )
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.upload_to_s3",
+        upload_to_s3_mock,
+    )
+    monkeypatch.setattr(
+        "aws_auto_record_uploader.app.cleanup_temp",
+        cleanup_temp_mock,
+    )
+
+    run_pipeline("config.json")
+
+    prepare_files_mock.assert_not_called()
+    load_whisper_model_mock.assert_not_called()
+    transcribe_file_mock.assert_not_called()
+    upload_to_s3_mock.assert_not_called()
+    cleanup_temp_mock.assert_not_called()

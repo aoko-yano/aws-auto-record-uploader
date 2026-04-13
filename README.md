@@ -6,7 +6,7 @@
 
 - 指定フォルダから音声ファイルを検出
 - AWS S3 Glacierストレージクラスでアップロード
-- 既にS3にある同名ファイルをスキップ
+- 既にS3にある同名ファイルは、文字起こし前にスキップ
 - faster-whisper による文字起こし
 - 設定ファイルによる柔軟な設定
 
@@ -79,7 +79,7 @@ AWS_S3_PREFIX=your-s3-prefix
 - `aws.storage_class`: ストレージクラス（"GLACIER", "DEEP_ARCHIVE"など）
 - `aws.region`: AWSリージョン
 - `options.delete_after_upload`: アップロード後にソース上のファイルを削除するか（現在は使用されていません）
-- `options.create_date_folders`: 日付フォルダを作成するか（例: recordings/20240101/）
+- `options.create_date_folders`: 日付フォルダを作成するか。`Ryyyymmdd-` 形式のファイル名ならその日付を使い、読めない場合は実行日を使います
 - `transcription.enabled`: 文字起こしを行うか
 - `transcription.model`: 使用する Whisper モデル名
 - `transcription.language`: 文字起こし対象の言語
