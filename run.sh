@@ -43,7 +43,13 @@ $DC build
 
 echo ""
 echo "[2/2] 処理を実行中..."
-SOURCE_COPY_FOLDER="$USB_SOURCE" $DC up --no-log-prefix
+# SOURCE_COPY_FOLDER を確実に上書きするため一時 env ファイルを使う
+# （sudo 経由ではシェルの環境変数が docker compose に届かないため）
+TMPENV=$(mktemp)
+grep -v '^SOURCE_COPY_FOLDER=' .env > "$TMPENV"
+echo "SOURCE_COPY_FOLDER=$USB_SOURCE" >> "$TMPENV"
+$DC --env-file "$TMPENV" up --no-log-prefix
+rm -f "$TMPENV"
 
 echo ""
 echo "============================================================"
