@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 # .env から LINUX_SOURCE_FOLDER を読み込む
-USB_SOURCE=$(grep '^LINUX_SOURCE_FOLDER=' .env | cut -d= -f2-)
+USB_SOURCE=$(grep '^LINUX_SOURCE_FOLDER=' .env | cut -d= -f2- | tr -d '\r')
 
 if [ -z "$USB_SOURCE" ]; then
     echo "エラー: .env に LINUX_SOURCE_FOLDER が設定されていません"
