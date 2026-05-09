@@ -5,7 +5,19 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-USB_SOURCE="/run/media/aoko-yano/USB DISK/RECORD"
+# .env から LINUX_SOURCE_FOLDER を読み込む
+USB_SOURCE=$(grep '^LINUX_SOURCE_FOLDER=' .env | cut -d= -f2-)
+
+if [ -z "$USB_SOURCE" ]; then
+    echo "エラー: .env に LINUX_SOURCE_FOLDER が設定されていません"
+    exit 1
+fi
+
+if [ ! -d "$USB_SOURCE" ]; then
+    echo "エラー: USBドライブが見つかりません: $USB_SOURCE"
+    echo "  USBレコーダーをPCに接続してから再実行してください"
+    exit 1
+fi
 
 # Docker アクセス確認（グループ未設定なら sudo -E を使う）
 # sudo -E で環境変数（SOURCE_COPY_FOLDER等）を引き継ぐ
@@ -14,12 +26,6 @@ if docker info >/dev/null 2>&1; then
 else
     echo "sudo でDockerを実行します（パスワードを入力してください）"
     DC="sudo -E docker compose"
-fi
-
-if [ ! -d "$USB_SOURCE" ]; then
-    echo "エラー: USBドライブが見つかりません: $USB_SOURCE"
-    echo "  USBレコーダーをPCに接続してから再実行してください"
-    exit 1
 fi
 
 echo "============================================================"
