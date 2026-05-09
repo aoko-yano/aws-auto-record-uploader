@@ -7,12 +7,13 @@ cd "$(dirname "$0")"
 
 USB_SOURCE="/run/media/aoko-yano/USB DISK/RECORD"
 
-# Docker アクセス確認（グループ未設定なら sudo を使う）
+# Docker アクセス確認（グループ未設定なら sudo -E を使う）
+# sudo -E で環境変数（SOURCE_COPY_FOLDER等）を引き継ぐ
 if docker info >/dev/null 2>&1; then
     DC="docker compose"
 else
     echo "sudo でDockerを実行します（パスワードを入力してください）"
-    DC="sudo docker compose"
+    DC="sudo -E docker compose"
 fi
 
 if [ ! -d "$USB_SOURCE" ]; then
